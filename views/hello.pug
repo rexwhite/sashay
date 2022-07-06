@@ -1,0 +1,10 @@
+html
+    head/
+    body
+        div(style="text-align: center")
+            h1 APIs #{title}
+            h2 (Listening on port: #{port})
+        div
+            ul
+                for api in apis
+                    li= api
