@@ -7,4 +7,5 @@ html
         div
             ul
                 for api in apis
-                    li= api
+                    li
+                        a(href='/apidoc/' + api) #{api}
