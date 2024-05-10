@@ -8,4 +8,4 @@ html
             ul
                 each schema in apis
                     li
-                        a(href='/apidoc') #{schema.name}
+                        a(href='/apidoc?spec=' + schema.path) #{schema.name}
