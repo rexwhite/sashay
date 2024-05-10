@@ -29,7 +29,7 @@ function loadSchemaList(directory=`${SCHEMA_DIR}`) {
 
         else if (entry.name === 'manifest.json') {
             // load manifest info
-            const manifest = require(path.join(__dirname, entry.path, entry.name));
+            const manifest = require(path.join(__dirname, directory, entry.name));
             for (const key in manifest) {
                 list.push({name: key, path: path.join('/', directory, manifest[key])});
             }
@@ -42,7 +42,13 @@ function loadSchemaList(directory=`${SCHEMA_DIR}`) {
 app.set('view engine', 'pug');
 app.set('views', './views');
 
-app.use(express.static('./public'));
+
+app.use((req, res, next) => {
+    console.log(`called ${req.url}`);
+    next();
+});
+
+app.use('/doc/schemas/', express.static('./schemas'));
 
 app.get('/', (req, res) => {
         return res.set('Cache-Control', 'no-store').render('list', {apis: app.locals.schemaList});
@@ -82,6 +88,9 @@ const temp_2 = (req, res, next) => {
 
 // serve specs at link
 app.use('/apidoc', temp_1, serveSchema, swaggerUI.serveFiles(), swaggerUI.setup());
+
+const doc = yaml.load('./schemas/dispatcher/private.openapi.yaml');
+app.use('/doc', swaggerUI.serve, swaggerUI.setup(null, {swaggerOptions: {url: './schemas/dispatcher/private.openapi.yaml'}}));
 
 // load schemas
 app.locals.schemaList = loadSchemaList()
