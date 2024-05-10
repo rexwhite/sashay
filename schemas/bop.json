@@ -1,0 +1,1436 @@
+{
+  "swagger": "2.0",
+  "basePath": "/",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "info": {
+    "description": "Insights Services Description",
+    "version": "1.0.0",
+    "title": "Insights Services",
+    "contact": {
+      "email": "ckyrouac@redhat.com"
+    }
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "description": "Liveliness\n",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "The services is alive",
+            "schema": {
+              "$ref": "#/definitions/MessageBody"
+            }
+          }
+        }
+      }
+    },
+    "/v1/jwt": {
+      "get": {
+        "description": "Retrieve JWT info used to validate the keycloak JWT cookie.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/TokenHeader"
+          },
+          {
+            "$ref": "#/parameters/ClientIdHeader"
+          },
+          {
+            "$ref": "#/parameters/EnvHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JWT info",
+            "schema": {
+              "$ref": "#/definitions/JwtResponseBody"
+            }
+          },
+          "401": {
+            "description": "Invalid credentials were supplied",
+            "schema": {
+              "$ref": "#/definitions/MessageBody401"
+            }
+          },
+          "403": {
+            "description": "Forbidden - user does not have required permissions",
+            "schema": {
+              "$ref": "#/definitions/MessageBody403"
+            }
+          }
+        }
+      }
+    },
+    "/v1/splunkProxy": {
+      "post": {
+        "description": "Proxy a single log entry to Splunk. This is only used for Insights Classic.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "required": true,
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/LogProxyBody"
+            }
+          },
+          {
+            "$ref": "#/parameters/TokenHeader"
+          },
+          {
+            "$ref": "#/parameters/ClientIdHeader"
+          },
+          {
+            "$ref": "#/parameters/EnvHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The log entry was successfully sent to Splunk.",
+            "schema": {
+              "$ref": "#/definitions/MessageBody"
+            }
+          },
+          "401": {
+            "description": "Invalid credentials were supplied",
+            "schema": {
+              "$ref": "#/definitions/MessageBody401"
+            }
+          },
+          "403": {
+            "description": "Forbidden - user does not have required permissions",
+            "schema": {
+              "$ref": "#/definitions/MessageBody403"
+            }
+          }
+        }
+      }
+    },
+    "/v1/sendEmails": {
+      "post": {
+        "description": "Send multiple emails\n",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "description": "Recipients could be either a list of user name or user's email address directly.",
+            "in": "body",
+            "required": true,
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/SendEmailsBody"
+            }
+          },
+          {
+            "$ref": "#/parameters/TokenHeader"
+          },
+          {
+            "$ref": "#/parameters/ClientIdHeader"
+          },
+          {
+            "$ref": "#/parameters/EnvHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The emails were sent",
+            "schema": {
+              "$ref": "#/definitions/MessageBody"
+            }
+          },
+          "400": {
+            "description": "Invalid input.",
+            "schema": {
+              "$ref": "#/definitions/MessageBody"
+            }
+          },
+          "401": {
+            "description": "Invalid credentials were supplied",
+            "schema": {
+              "$ref": "#/definitions/MessageBody401"
+            }
+          },
+          "403": {
+            "description": "Forbidden - user does not have required permissions",
+            "schema": {
+              "$ref": "#/definitions/MessageBody403"
+            }
+          }
+        }
+      }
+    },
+    "/v1/users": {
+      "post": {
+        "operationId": "postUsers",
+        "description": "Get details for multiple users\n",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/IncludePermissions"
+          },
+          {
+            "in": "body",
+            "name": "users",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserBody"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "type": "string",
+            "required": false,
+            "enum": [
+              "asc",
+              "des"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "queryBy",
+            "type": "string",
+            "required": false,
+            "enum": [
+              "userId",
+              "principal"
+            ],
+            "default": "principal"
+          },
+          {
+            "$ref": "#/parameters/TokenHeader"
+          },
+          {
+            "$ref": "#/parameters/ClientIdHeader"
+          },
+          {
+            "$ref": "#/parameters/EnvHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of user objects",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/UserItem"
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials were supplied",
+            "schema": {
+              "$ref": "#/definitions/MessageBody401"
+            }
+          },
+          "403": {
+            "description": "Forbidden - user does not have required permissions",
+            "schema": {
+              "$ref": "#/definitions/MessageBody403"
+            }
+          }
+        }
+      }
+    },
+    "/v1/entitlements/{accountNumber}": {
+      "get": {
+        "operationId": "getEntitlements",
+        "description": "Retrieve list of entitlements for an account.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountNumber",
+            "description": "A Red Hat account number",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "$ref": "#/parameters/TokenHeader"
+          },
+          {
+            "$ref": "#/parameters/ClientIdHeader"
+          },
+          {
+            "$ref": "#/parameters/EnvHeader"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of entitlements for given account.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/EntitlementItem"
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials were supplied",
+            "schema": {
+              "$ref": "#/definitions/MessageBody401"
+            }
+          },
+          "403": {
+            "description": "Forbidden - user does not have required permissions",
+            "schema": {
+              "$ref": "#/definitions/MessageBody403"
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth": {
+      "get": {
+        "operationId": "getAuth",
+        "description": "Validates authentication via Basic, Certificate, or SystemID.\n",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "description": "A basic auth header",
+            "type": "string",
+            "required": false
+          },
+          {
+            "in": "header",
+            "name": "x-rh-systemid",
+            "description": "The full XML of an RHN systemid",
+            "type": "string",
+            "required": false
+          },
+          {
+            "in": "header",
+            "name": "x-rh-certauth-cn",
+            "description": "Common name of a RHSM certificate",
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "x-rh-certauth-issuer",
+            "description": "Issuer of a RHSM certificate",
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "x-rh-insights-certauth-secret",
+            "description": "Secret of a RHSM certificate",
+            "type": "string"
+          },
+          {
+            "$ref": "#/parameters/TokenHeader"
+          },
+          {
+            "$ref": "#/parameters/ClientIdHeader"
+          },
+          {
+            "$ref": "#/parameters/EnvHeader"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "User object for the validated auth method.",
+            "schema": {
+              "$ref": "#/definitions/AuthItem"
+            }
+          },
+          "400": {
+            "description": "Malformed request, most likely missing auth headers",
+            "schema": {
+              "$ref": "#/definitions/MessageBody"
+            }
+          },
+          "401": {
+            "description": "Invalid credentials were supplied",
+            "schema": {
+              "$ref": "#/definitions/MessageBody401"
+            }
+          },
+          "403": {
+            "description": "Forbidden - user does not have required permissions",
+            "schema": {
+              "$ref": "#/definitions/MessageBody403"
+            }
+          }
+        }
+      }
+    },
+    "/v1/articles/{articleId}": {
+      "get": {
+        "operationId": "getArticle",
+        "description": "Retrieve an article URI from hydra\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "articleId",
+            "description": "A Red Hat KB Article ID",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "$ref": "#/parameters/TokenHeader"
+          },
+          {
+            "$ref": "#/parameters/ClientIdHeader"
+          },
+          {
+            "$ref": "#/parameters/EnvHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An article object",
+            "schema": {
+              "$ref": "#/definitions/ArticleItem"
+            }
+          },
+          "400": {
+            "description": "Problem retrieving article URI from hydra",
+            "schema": {
+              "$ref": "#/definitions/MessageBody"
+            }
+          },
+          "401": {
+            "description": "Invalid credentials were supplied",
+            "schema": {
+              "$ref": "#/definitions/MessageBody401"
+            }
+          },
+          "403": {
+            "description": "Forbidden - user does not have required permissions",
+            "schema": {
+              "$ref": "#/definitions/MessageBody403"
+            }
+          }
+        }
+      }
+    },
+    "/v1/accounts/{accountNumber}/users": {
+      "get": {
+        "operationId": "findUsers",
+        "description": "Get users in a given EBS account number",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountNumber",
+            "required": true,
+            "description": "EBS account number",
+            "type": "string"
+          },
+          {
+            "$ref": "#/parameters/IncludePermissions"
+          },
+          {
+            "$ref": "#/parameters/Status"
+          },
+          {
+            "$ref": "#/parameters/Admin_only"
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "type": "integer",
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "default": 100,
+            "type": "integer"
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "type": "string",
+            "enum": [
+              "principal"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "type": "string",
+            "enum": [
+              "asc",
+              "des"
+            ]
+          },
+          {
+            "$ref": "#/parameters/TokenHeader"
+          },
+          {
+            "$ref": "#/parameters/ClientIdHeader"
+          },
+          {
+            "$ref": "#/parameters/EnvHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of user objects",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/AccountUserItem"
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials were supplied",
+            "schema": {
+              "$ref": "#/definitions/MessageBody401"
+            }
+          },
+          "403": {
+            "description": "Forbidden - user does not have required permissions",
+            "schema": {
+              "$ref": "#/definitions/MessageBody403"
+            }
+          }
+        }
+      }
+    },
+    "/v1/accounts/{accountNumber}/usersBy": {
+      "post": {
+        "operationId": "findUsersBy",
+        "description": "Get users by specified content in a given EBS account number",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountNumber",
+            "required": true,
+            "description": "EBS account number",
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "requestBody",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "example": {
+                "primaryEmail": "example@email.com",
+                "emailStartsWith": "z",
+                "principalStartsWith": "b"
+              }
+            }
+          },
+          {
+            "$ref": "#/parameters/IncludePermissions"
+          },
+          {
+            "$ref": "#/parameters/Status"
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "type": "string",
+            "enum": [
+              "principal"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "type": "string",
+            "enum": [
+              "asc",
+              "des"
+            ]
+          },
+          {
+            "$ref": "#/parameters/TokenHeader"
+          },
+          {
+            "$ref": "#/parameters/ClientIdHeader"
+          },
+          {
+            "$ref": "#/parameters/EnvHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of user objects",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/AccountUserItem"
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials were supplied",
+            "schema": {
+              "$ref": "#/definitions/MessageBody401"
+            }
+          },
+          "403": {
+            "description": "Forbidden - user does not have required permissions",
+            "schema": {
+              "$ref": "#/definitions/MessageBody403"
+            }
+          }
+        }
+      }
+    },
+    "/v2/accounts/{accountNumber}/users": {
+      "get": {
+        "operationId": "findUsersV2",
+        "description": "Get users with total counts in a given EBS account number",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountNumber",
+            "required": true,
+            "description": "EBS account number",
+            "type": "string"
+          },
+          {
+            "$ref": "#/parameters/IncludePermissions"
+          },
+          {
+            "$ref": "#/parameters/Status"
+          },
+          {
+            "$ref": "#/parameters/Admin_only"
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "type": "integer",
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "default": 100,
+            "type": "integer"
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "type": "string",
+            "enum": [
+              "principal"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "type": "string",
+            "enum": [
+              "asc",
+              "des"
+            ]
+          },
+          {
+            "$ref": "#/parameters/TokenHeader"
+          },
+          {
+            "$ref": "#/parameters/ClientIdHeader"
+          },
+          {
+            "$ref": "#/parameters/EnvHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of user objects",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "userCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "example": 1
+                },
+                "users": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/AccountUserItem"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials were supplied",
+            "schema": {
+              "$ref": "#/definitions/MessageBody401"
+            }
+          },
+          "403": {
+            "description": "Forbidden - user does not have required permissions",
+            "schema": {
+              "$ref": "#/definitions/MessageBody403"
+            }
+          }
+        }
+      }
+    },
+    "/v3/accounts/{accountId}/users": {
+      "get": {
+        "operationId": "findUsersV3",
+        "description": "Get users with total counts in a given account(org) ID",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountId",
+            "required": true,
+            "description": "Account(org) ID",
+            "type": "string"
+          },
+          {
+            "$ref": "#/parameters/IncludePermissions"
+          },
+          {
+            "$ref": "#/parameters/Status"
+          },
+          {
+            "$ref": "#/parameters/Admin_only"
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "type": "integer",
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "default": 100,
+            "type": "integer"
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "type": "string",
+            "enum": [
+              "principal"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "type": "string",
+            "enum": [
+              "asc",
+              "des"
+            ]
+          },
+          {
+            "$ref": "#/parameters/TokenHeader"
+          },
+          {
+            "$ref": "#/parameters/ClientIdHeader"
+          },
+          {
+            "$ref": "#/parameters/EnvHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of user objects",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "userCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "example": 1
+                },
+                "users": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/AccountUserItem"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials were supplied",
+            "schema": {
+              "$ref": "#/definitions/MessageBody401"
+            }
+          },
+          "403": {
+            "description": "Forbidden - user does not have required permissions",
+            "schema": {
+              "$ref": "#/definitions/MessageBody403"
+            }
+          }
+        }
+      }
+    },
+    "/v3/accounts/{accountId}/usersBy": {
+      "post": {
+        "operationId": "findUsersByV3",
+        "description": "Get users by specified content in a given account(org) ID",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountId",
+            "required": true,
+            "description": "Account(org) ID",
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "requestBody",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "example": {
+                "primaryEmail": "example@email.com",
+                "emailStartsWith": "z",
+                "principalStartsWith": "b"
+              }
+            }
+          },
+          {
+            "$ref": "#/parameters/IncludePermissions"
+          },
+          {
+            "$ref": "#/parameters/Status"
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "type": "string",
+            "enum": [
+              "principal"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "type": "string",
+            "enum": [
+              "asc",
+              "des"
+            ]
+          },
+          {
+            "$ref": "#/parameters/TokenHeader"
+          },
+          {
+            "$ref": "#/parameters/ClientIdHeader"
+          },
+          {
+            "$ref": "#/parameters/EnvHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of user objects",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/AccountUserItem"
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials were supplied",
+            "schema": {
+              "$ref": "#/definitions/MessageBody401"
+            }
+          },
+          "403": {
+            "description": "Forbidden - user does not have required permissions",
+            "schema": {
+              "$ref": "#/definitions/MessageBody403"
+            }
+          }
+        }
+      }
+    },
+    "/v1/exploits": {
+      "get": {
+        "operationId": "getExploits",
+        "description": "Get affected redhat products",
+        "parameters": [
+          {
+            "$ref": "#/parameters/TokenHeader"
+          },
+          {
+            "$ref": "#/parameters/ClientIdHeader"
+          },
+          {
+            "$ref": "#/parameters/EnvHeader"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of exploits objects",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials were supplied",
+            "schema": {
+              "$ref": "#/definitions/MessageBody401"
+            }
+          },
+          "403": {
+            "description": "Forbidden - user does not have required permissions",
+            "schema": {
+              "$ref": "#/definitions/MessageBody403"
+            }
+          }
+        }
+      }
+    },
+    "/v2/accountMapping/orgIds": {
+      "post": {
+        "operationId": "accountMapFromEbsID",
+        "description": "Get EBS account number -> Organization ID mapping",
+        "parameters": [
+          {
+            "$ref": "#/parameters/TokenHeader"
+          },
+          {
+            "$ref": "#/parameters/ClientIdHeader"
+          },
+          {
+            "$ref": "#/parameters/EnvHeader"
+          },
+          {
+            "in": "body",
+            "name": "requestBody",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "maxItems": 5000,
+              "example": [
+                "540155",
+                "3098430",
+                "2828282"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dictionary of EBS Account Numbers -> Organizations.  Keys for non-existent EBS numbers will be ommitted from the response.",
+            "schema": {
+              "type": "object",
+              "example": {
+                "540155": "39393999",
+                "2828282": "29393933",
+                "3098430": "38393949"
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials were supplied",
+            "schema": {
+              "$ref": "#/definitions/MessageBody401"
+            }
+          },
+          "403": {
+            "description": "Forbidden - user does not have required permissions",
+            "schema": {
+              "$ref": "#/definitions/MessageBody403"
+            }
+          }
+        }
+      }
+    },
+    "/v2/accountMapping/ebsAccounts": {
+      "post": {
+        "operationId": "accountMapFromOrgIDs",
+        "description": "Get organization_id -> EBS account number mapping. Mapping may not exist.",
+        "parameters": [
+          {
+            "$ref": "#/parameters/TokenHeader"
+          },
+          {
+            "$ref": "#/parameters/ClientIdHeader"
+          },
+          {
+            "$ref": "#/parameters/EnvHeader"
+          },
+          {
+            "in": "body",
+            "name": "requestBody",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "maxItems": 5000,
+              "example": [
+                "39393999",
+                "29393933",
+                "129292020"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dictionary of Organizations ->  EBS Account number. Keys for non-existent mapping will be ommitted from the response.",
+            "schema": {
+              "type": "object",
+              "example": {
+                "29393933": "2828282",
+                "39393999": "2374784"
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials were supplied",
+            "schema": {
+              "$ref": "#/definitions/MessageBody401"
+            }
+          },
+          "403": {
+            "description": "Forbidden - user does not have required permissions",
+            "schema": {
+              "$ref": "#/definitions/MessageBody403"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "ArticleItem": {
+      "type": "object",
+      "required": [
+        "viewUri"
+      ],
+      "properties": {
+        "viewUri": {
+          "type": "string",
+          "example": "https://access.redhat.com/solutions/27624"
+        }
+      }
+    },
+    "LogProxyBody": {
+      "type": "object",
+      "required": [
+        "message",
+        "host",
+        "name"
+      ],
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "This is the log message"
+        },
+        "host": {
+          "type": "string",
+          "example": "https://access.redhat.com/r/insights-services/v1/splunkProxy"
+        },
+        "name": {
+          "type": "string",
+          "example": "insights-api"
+        }
+      }
+    },
+    "MessageBody": {
+      "type": "object",
+      "required": [
+        "message"
+      ],
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "success"
+        }
+      }
+    },
+    "MessageBody401": {
+      "type": "object",
+      "required": [
+        "message"
+      ],
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Missing or invalid x-rh-apitoken."
+        }
+      }
+    },
+    "MessageBody403": {
+      "type": "object",
+      "required": [
+        "message"
+      ],
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Not permitted."
+        }
+      }
+    },
+    "SendEmailsBody": {
+      "description": "Recipients could be either a list of user name or user’s email address directly.",
+      "type": "object",
+      "required": [
+        "emails"
+      ],
+      "properties": {
+        "emails": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "subject",
+              "body",
+              "recipients",
+              "bodyType"
+            ],
+            "properties": {
+              "subject": {
+                "type": "string"
+              },
+              "body": {
+                "type": "string"
+              },
+              "recipients": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "ccList": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "bccList": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "bodyType": {
+                "type": "string",
+                "enum": [
+                  "html",
+                  "text"
+                ]
+              }
+            }
+          },
+          "example": [
+            {
+              "subject": "Here's an Email!",
+              "body": "<body><p>This is the email.</p></body>",
+              "bodyType": "html",
+              "recipients": [
+                "\"Some User\" some-user@email.com"
+              ]
+            },
+            {
+              "subject": "Here's an Email!",
+              "body": "<body><p>This is the email.</p></body>",
+              "bodyType": "html",
+              "recipients": [
+                "user-name-1",
+                "user-name-b"
+              ],
+              "ccList": [
+                "ccuser@email.com"
+              ],
+              "bccList": [
+                "user-name-3",
+                "user-name-4"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "UserBody": {
+      "type": "object",
+      "required": [
+        "users"
+      ],
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "example": "some-user"
+          }
+        }
+      }
+    },
+    "UserItem": {
+      "type": "object",
+      "required": [
+        "id",
+        "username",
+        "is_active"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 123456
+        },
+        "username": {
+          "type": "string",
+          "example": "some-user"
+        },
+        "email": {
+          "type": "string",
+          "example": "some-user@email.com"
+        },
+        "first_name": {
+          "type": "string",
+          "example": "Some"
+        },
+        "last_name": {
+          "type": "string",
+          "example": "User"
+        },
+        "account_number": {
+          "type": "string",
+          "example": "000006"
+        },
+        "address_string": {
+          "type": "string",
+          "example": "\"Some User\" some-user@email.com"
+        },
+        "is_active": {
+          "type": "boolean",
+          "example": true
+        },
+        "is_org_admin": {
+          "type": "boolean",
+          "example": true
+        },
+        "is_internal": {
+          "type": "boolean",
+          "example": false
+        },
+        "locale": {
+          "type": "string",
+          "example": "en_US"
+        },
+        "org_id": {
+          "type": "string",
+          "example": 1234567
+        },
+        "display_name": {
+          "type": "string",
+          "example": "Quality Assurance"
+        },
+        "type": {
+          "type": "string",
+          "example": "system"
+        },
+        "activation_key": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": []
+        }
+      }
+    },
+    "AccountUserItem": {
+      "type": "object",
+      "required": [
+        "id",
+        "username",
+        "email",
+        "is_active",
+        "locale"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 123456
+        },
+        "username": {
+          "type": "string",
+          "example": "some-user"
+        },
+        "email": {
+          "type": "string",
+          "example": "some-user@email.com"
+        },
+        "first_name": {
+          "type": "string",
+          "example": "Some"
+        },
+        "last_name": {
+          "type": "string",
+          "example": "User"
+        },
+        "is_active": {
+          "type": "boolean",
+          "example": true
+        },
+        "is_org_admin": {
+          "type": "boolean",
+          "example": true
+        },
+        "is_internal": {
+          "type": "boolean",
+          "example": false
+        },
+        "locale": {
+          "type": "string",
+          "example": "en_US"
+        }
+      }
+    },
+    "EntitlementItem": {
+      "type": "object",
+      "required": [
+        "sku",
+        "quantity"
+      ],
+      "properties": {
+        "sku": {
+          "type": "string",
+          "example": "SER0232US"
+        },
+        "start_date": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2012-04-23T18:25:43.511Z"
+        },
+        "quantity": {
+          "type": "integer",
+          "example": 2
+        }
+      }
+    },
+    "AuthItem": {
+      "type": "object",
+      "required": [
+        "user",
+        "mechanism"
+      ],
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/UserItem"
+        },
+        "mechanism": {
+          "type": "string",
+          "example": "basic"
+        }
+      }
+    },
+    "JwtResponseBody": {
+      "type": "object",
+      "required": [
+        "pubkey"
+      ],
+      "properties": {
+        "pubkey": {
+          "type": "string",
+          "example": "-----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAuYp35gi5YzQeNN5aQOPwLranSJT9aJB+w6Ih4Wn9R6FzEg1OEKwBNNpb+z18reAyhxQMy/bCz3q+J7viX6p5hbclPBakKOjPB4lDzwhvfE1G4vp84zH1bR7m8dd4OXbriojVZ51IPNuItO00nrDrx6PWNP/5ufBUwjJo8+BD+sWm7BP/CVlb8miVh8itpcLJrszpHzF+u0OPqwI/e3P83cYOsXoQRxD4wpo718yqYh4J3NNJQYnyprJMpC3w3QQ5PR28TbBfSHgvtWD1SBuavHh2jwT/6Pi8FqOS1vfX7QA1pxyYZ+zazVxj/zOrCeP3FHyaxTPmn0d5zsXBZCCyhsfCaStnFePTPk+KEGwZAlv43JJjV2rTJc1Lsj1Th7Jq63TvwIGBcFFAtC72N5+jwRjUoeyu/nwO/1r1awvbfrlBF31PG5wxUdVR56PesLO7EVH1/2KrVN7dtgaQkomVk6rULBbCbwhfR1oT3cOxF7d0ajpbzHd2qcfeBzFTABL8dzBp4FcZx5QyYSIOP8fuwSO8zy4rxmBw7HpHGOGFrC3cXWqB33M23IjOpVZbfK46QvJhcGq9QEtOlRO2WVemMcwDSgpceAa7e3ZJx+LO6XyTEjRtTuHMwdLxII3YUlL1hPozrNE1U/ADPGHgnTxGswgBpGOA6rOkWav5uhcj9CsCAwEAAQ==\n-----END PUBLIC KEY-----\n"
+        }
+      }
+    }
+  },
+  "parameters": {
+    "TokenHeader": {
+      "name": "x-rh-apitoken",
+      "type": "string",
+      "in": "header",
+      "required": true
+    },
+    "ClientIdHeader": {
+      "name": "x-rh-clientid",
+      "type": "string",
+      "in": "header",
+      "required": false
+    },
+    "EnvHeader": {
+      "name": "x-rh-insights-env",
+      "type": "string",
+      "in": "header",
+      "required": false
+    },
+    "IncludePermissions": {
+      "description": "Optionally include is_internal and is_org_admin flags on each user in response. Defaults to true.",
+      "in": "query",
+      "name": "include_permissions",
+      "required": false,
+      "type": "boolean",
+      "default": true
+    },
+    "Status": {
+      "description": "Specify which status of users to return.",
+      "in": "query",
+      "name": "status",
+      "type": "string",
+      "enum": [
+        "enabled",
+        "disabled",
+        "all"
+      ],
+      "default": "enabled"
+    },
+    "Admin_only": {
+      "description": "Set this to true to return only org admins. When it is true, parameter \"status\" is ignored.",
+      "in": "query",
+      "name": "admin_only",
+      "type": "boolean",
+      "default": false
+    }
+  }
+}
