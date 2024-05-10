@@ -4,13 +4,22 @@
   "description": "Simple express app to render swagger api specs.",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon app.js",
+    "start": "nodemon",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "nodemonConfig": {
+    "watch": [
+      "**/*.json",
+      "**/*.yaml",
+      "**/*.yml",
+      "/Users/rewhite/Code/RedHatInsights/insights-remediations/src/api/openapi.yaml"
+    ]
   },
   "author": "Rex White",
   "license": "Apache-2.0",
   "dependencies": {
     "express": "^4.18.1",
+    "glob": "^10.3.14",
     "lodash": "^4.17.21",
     "pug": "^3.0.2",
     "swagger-ui-express": "^4.4.0",

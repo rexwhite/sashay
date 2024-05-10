@@ -1,48 +1,54 @@
 'use strict';
 
-const fs = require('fs').promises;
-const path = require('path');
+const fs = require('fs');
+const _path = require('path');
 const _ = require('lodash');
-const yaml = require('yamljs');
+const {globSync} = require('glob');
 const express = require('express');
 const swaggerUI = require('swagger-ui-express');
 
 const SCHEMA_DIR = 'schemas';
+const MANIFESTS = './schemas/**/manifest.json'
 const port = process.env.PORT | 8080;
 const app = express();
 
 app.locals.port = port;
 
+function loadSchemaList(directory=`${SCHEMA_DIR}`) {
+    // find all manifests...
+    const manifests = globSync(MANIFESTS, {dotRelative: true});
+    const list = _(manifests)
+    .map(manifest => {
+        // import the manifest...
+        return _(require(manifest))
+        .map((path, name) => ({
+            name,
+            path: _path.join('/', _path.dirname(manifest), path)
+        }))
+        .value();
+    })
+    .flatten()
+    .value();
+
+    return list;
+};
+
+// load schema list
+const schemaList = loadSchemaList();
+
 app.set('view engine', 'pug');
 app.set('views', './views');
 
-app.use(express.static('./public'));
+app.use('/apidoc/schemas/', express.static('./schemas'));
 
 app.get('/', (req, res) => {
-    // get list of schema files
-    return fs.readdir('./schemas')
-    .then((files) => {
-        const list = _.filter(files,  (filename) => {
-            const file = filename.toLowerCase();
-            return file.endsWith('.yml') || file.endsWith('.yaml');
-        });
-
-        return res.render('hello', {apis: list});
-    });
+        return res.set('Cache-Control', 'no-store').render('list', {apis: schemaList});
 });
 
-const loadSchema = (req, res, next) => {
-    // res.send(`Loading file: ${req.params.filename}...`);
-    return yaml.load(path.join(SCHEMA_DIR, req.params.filename), (result) => {
-        req.swaggerDoc = result;
-        console.log(`swaggerUI.serve: ${JSON.stringify(swaggerUI.serve)}`);
-        next();
-    });
-};
-
-// serve specs at link
-app.use(`/apidoc/:filename`, loadSchema, swaggerUI.serve, swaggerUI.setup());
-
+app.use('/apidoc', swaggerUI.serve, (req, res, next) => {
+    const options = {swaggerOptions: {url: `.${req.query.spec}`}}
+    return swaggerUI.setup(null, options)(req, res, next);
+});
 
 // start the server
 app.listen(port,  () => {

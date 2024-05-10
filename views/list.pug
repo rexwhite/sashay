@@ -6,6 +6,6 @@ html
             h2 (Listening on port: #{port})
         div
             ul
-                for api in apis
+                each schema in apis
                     li
-                        a(href='/apidoc/' + api) #{api}
+                        a(href='/apidoc?spec=' + schema.path) #{schema.name}

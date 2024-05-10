@@ -1,0 +1,841 @@
+{
+  "openapi": "3.0.0",
+  "servers": [
+    {
+      "description": "Cloud-Connector API",
+      "url": "/api/cloud-connector/"
+    }
+  ],
+  "info": {
+    "description": "Cloud-Connector Service",
+    "version": "1.0.0",
+    "title": "Cloud-Connector Service"
+  },
+  "tags": [
+    {
+      "name": "api",
+      "description": "RESTful service"
+    },
+    {
+      "name": "connection",
+      "description": "Connection status operations"
+    }
+  ],
+  "paths": {
+    "/v2/connections/{client_id}/message": {
+      "post": {
+        "tags": [
+          "api"
+        ],
+        "summary": "Submit a message to be routed to a customers environment.  This method will take the permitted tenants into consideration when looking up the connection details.  The value of the x-rh-cloud-connector-org-id header is compared against the permitted tenants to locate the connection.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "PSKAuthClientID": [],
+            "PSKAuthOrgID": [],
+            "PSKAuthKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ClientID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageRequestV2"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No connection to the target connected client"
+          }
+        }
+      }
+    },
+    "/v2/connections/{client_id}/status": {
+      "get": {
+        "operationId": "v2.connection.status.multiorg",
+        "tags": [
+          "api"
+        ],
+        "summary": "Retrieve the status of the connection.  This method will take the permitted tenants into consideration when looking up the connection details.  The value of the x-rh-cloud-connector-org-id header is compared against the permitted tenants to locate the connection.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "PSKAuthClientID": [],
+            "PSKAuthOrgID": [],
+            "PSKAuthKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ClientID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionStatusResponseV2"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No connection to the target connected client"
+          }
+        }
+      }
+    },
+    "/v2/connections": {
+      "get": {
+        "tags": [
+          "api"
+        ],
+        "summary": "Retrieve the list of connections available to the Org Id.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "PSKAuthClientID": [],
+            "PSKAuthOrgID": [],
+            "PSKAuthKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionListByAccountResponseV2"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No connection to the target connected client"
+          }
+        }
+      }
+    },
+    "/v1/message": {
+      "post": {
+        "tags": [
+          "api"
+        ],
+        "summary": "Submit a message to be routed to a customers environment.  This method will take the permitted tenants into consideration when looking up the connection details.  The value of the x-rh-cloud-connector-org-id header is compared against the permitted tenants to locate the connection.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "PSKAuthClientID": [],
+            "PSKAuthAccount": [],
+            "PSKAuthOrgID": [],
+            "PSKAuthKey": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No connection to the target connected client"
+          }
+        }
+      }
+    },
+    "/v1/connection_status": {
+      "post": {
+        "operationId": "v1.connection.status.multiorg",
+        "tags": [
+          "api"
+        ],
+        "summary": "Retrieve the status of the connection.  This method will take the permitted tenants into consideration when looking up the connection details.  The value of the x-rh-cloud-connector-org-id header is compared against the permitted tenants to locate the connection.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "PSKAuthClientID": [],
+            "PSKAuthAccount": [],
+            "PSKAuthOrgID": [],
+            "PSKAuthKey": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionStatusResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No connection to the target connected client"
+          }
+        }
+      }
+    },
+    "/v1/connection": {
+      "get": {
+        "tags": [
+          "api",
+          "connection"
+        ],
+        "summary": "Get a list of open connections",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "PSKAuthClientID": [],
+            "PSKAuthAccount": [],
+            "PSKAuthKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/connection/{account}": {
+      "get": {
+        "tags": [
+          "api",
+          "connection"
+        ],
+        "summary": "Get a list of open connections",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "PSKAuthClientID": [],
+            "PSKAuthAccount": [],
+            "PSKAuthKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AccountID"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionListAccountResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/connection/status": {
+      "post": {
+        "operationId": "v1.connection.status",
+        "tags": [
+          "api",
+          "connection"
+        ],
+        "summary": "Retrieve the status of the connection.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "PSKAuthClientID": [],
+            "PSKAuthAccount": [],
+            "PSKAuthKey": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/connection/ping": {
+      "post": {
+        "tags": [
+          "api",
+          "connection"
+        ],
+        "summary": "Send a ping request to a connected client",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "PSKAuthClientID": [],
+            "PSKAuthAccount": [],
+            "PSKAuthKey": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionPingResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/connection/reconnect": {
+      "post": {
+        "tags": [
+          "api",
+          "connection"
+        ],
+        "summary": "Send a reconnect request to a connected client",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "PSKAuthClientID": [],
+            "PSKAuthAccount": [],
+            "PSKAuthKey": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionReconnectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/connection/disconnect": {
+      "post": {
+        "tags": [
+          "api",
+          "connection"
+        ],
+        "summary": "Send a disconnect request to a connected client",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "PSKAuthClientID": [],
+            "PSKAuthAccount": [],
+            "PSKAuthKey": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionDisconnectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "ClientID": {
+        "name": "client_id",
+        "in": "path",
+        "description": "The connection ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "AccountID": {
+        "in": "path",
+        "name": "account",
+        "description": "Account number",
+        "schema": {
+          "type": "string",
+          "pattern": "[0-9]+"
+        },
+        "required": true
+      },
+      "Limit": {
+        "in": "query",
+        "name": "limit",
+        "description": "limit",
+        "schema": {
+          "type": "integer"
+        },
+        "required": false
+      },
+      "Offset": {
+        "in": "query",
+        "name": "offset",
+        "description": "offset",
+        "schema": {
+          "type": "integer"
+        },
+        "required": false
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-rh-identity",
+        "description": "Base64-encoded JSON identity header provided by 3Scale. Contains an account number of the user issuing the request. Format of the JSON: {\"identity\": {\"account_number\": \"12345678\"}}"
+      },
+      "PSKAuthClientID": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-rh-cloud-connector-client-id",
+        "description": "Name of the service that is making the request"
+      },
+      "PSKAuthKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-rh-cloud-connector-psk",
+        "description": "Key supplied by the platform infrastructure team"
+      },
+      "PSKAuthAccount": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-rh-cloud-connector-account",
+        "description": "Account the request is being made on behalf of"
+      },
+      "PSKAuthOrgID": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-rh-cloud-connector-org-id",
+        "description": "Org ID the request is being made on behalf of"
+      }
+    },
+    "schemas": {
+      "MessageResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "MessageRequest": {
+        "type": "object",
+        "properties": {
+          "account": {
+            "type": "string"
+          },
+          "recipient": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "directive": {
+            "type": "string"
+          }
+        }
+      },
+      "MessageRequestV2": {
+        "type": "object",
+        "properties": {
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "payload": {
+            "type": "string"
+          },
+          "directive": {
+            "type": "string"
+          }
+        }
+      },
+      "PaginatedResponseMeta": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "PaginatedResponseLinks": {
+        "type": "object",
+        "properties": {
+          "links": {
+            "type": "object",
+            "properties": {
+              "first": {
+                "type": "string"
+              },
+              "last": {
+                "type": "string"
+              },
+              "next": {
+                "type": "string"
+              },
+              "prev": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "ConnectionListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PaginatedResponseMeta"
+          },
+          {
+            "$ref": "#/components/schemas/PaginatedResponseLinks"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "account": {
+                      "type": "string",
+                      "example": "0000001"
+                    },
+                    "connections": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "example": "node-a"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "ConnectionListAccountResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PaginatedResponseMeta"
+          },
+          {
+            "$ref": "#/components/schemas/PaginatedResponseLinks"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "example": "node-a"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "ConnectionListByAccountResponseV2": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PaginatedResponseMeta"
+          },
+          {
+            "$ref": "#/components/schemas/PaginatedResponseLinks"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ConnectionV2"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "ConnectionV2": {
+        "type": "object",
+        "properties": {
+          "account": {
+            "type": "string"
+          },
+          "org_id": {
+            "type": "string"
+          },
+          "client_id": {
+            "type": "string"
+          },
+          "canonical_facts": {
+            "type": "object"
+          },
+          "dispatchers": {
+            "type": "object"
+          },
+          "tags": {
+            "type": "object"
+          }
+        }
+      },
+      "ConnectionStatusRequest": {
+        "type": "object",
+        "properties": {
+          "account": {
+            "type": "string"
+          },
+          "node_id": {
+            "type": "string"
+          }
+        }
+      },
+      "ConnectionStatusResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ConnectionStatus"
+          },
+          "dispatchers": {
+            "type": "object"
+          },
+          "canonical_facts": {
+            "type": "object"
+          },
+          "tags": {
+            "type": "object"
+          }
+        }
+      },
+      "ConnectionStatusResponseV2": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ConnectionV2"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": {
+                "$ref": "#/components/schemas/ConnectionStatus"
+              }
+            }
+          }
+        ]
+      },
+      "ConnectionPingResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ConnectionStatus"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/Payload"
+          }
+        }
+      },
+      "ConnectionReconnectRequest": {
+        "type": "object",
+        "properties": {
+          "account": {
+            "type": "string"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "delay": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ConnectionDisconnectRequest": {
+        "type": "object",
+        "properties": {
+          "account": {
+            "type": "string"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "Payload": {
+        "type": "object",
+        "properties": {
+          "account": {
+            "type": "string"
+          },
+          "sender": {
+            "type": "string"
+          },
+          "message_type": {
+            "type": "string"
+          },
+          "message_id": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "object"
+          },
+          "code": {
+            "type": "integer"
+          },
+          "in_response_to": {
+            "type": "string"
+          },
+          "serial": {
+            "type": "integer"
+          }
+        }
+      },
+      "ConnectionStatus": {
+        "type": "string",
+        "enum": [
+          "connected",
+          "disconnected"
+        ]
+      }
+    }
+  }
+}
