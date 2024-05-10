@@ -1,4 +1,0 @@
-{
-  "Playbook-Dispatcher Internal API": "./private.openapi.yaml",
-  "Playbook-Dispatcher Public API": "./public.openapi.yaml"
-}

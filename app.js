@@ -1,39 +1,34 @@
 'use strict';
 
 const fs = require('fs');
-const path = require('path');
+const _path = require('path');
 const _ = require('lodash');
-const yaml = require('yamljs');
+const {globSync} = require('glob');
 const express = require('express');
 const swaggerUI = require('swagger-ui-express');
 
 const SCHEMA_DIR = 'schemas';
+const MANIFESTS = './schemas/**/manifest.json'
 const port = process.env.PORT | 8080;
 const app = express();
 
 app.locals.port = port;
 
 function loadSchemaList(directory=`${SCHEMA_DIR}`) {
-    const list = [];
-
-    // get list of schema files
-    const files = fs.readdirSync(directory, {withFileTypes: true})
-
-    for (const entry of files) {
-        // descend into subdirs
-        if (entry.isDirectory()) {
-            const result = loadSchemaList(path.join(directory, entry.name));
-            list.push(...result);
-        }
-
-        else if (entry.name === 'manifest.json') {
-            // load manifest info
-            const manifest = require(path.join(__dirname, directory, entry.name));
-            for (const key in manifest) {
-                list.push({name: key, path: path.join('/', directory, manifest[key])});
-            }
-        }
-    }
+    // find all manifests...
+    const manifests = globSync(MANIFESTS, {dotRelative: true});
+    const list = _(manifests)
+    .map(manifest => {
+        // import the manifest...
+        return _(require(manifest))
+        .map((path, name) => ({
+            name,
+            path: _path.join('/', _path.dirname(manifest), path)
+        }))
+        .value();
+    })
+    .flatten()
+    .value();
 
     return list;
 };
