@@ -14,6 +14,8 @@ const app = express();
 
 app.locals.port = port;
 
+const customJs = "";
+
 function loadSchemaList(directory=`${SCHEMA_DIR}`) {
     // find all manifests...
     const manifests = globSync(MANIFESTS, {dotRelative: true});
@@ -46,7 +48,10 @@ app.get('/', (req, res) => {
 });
 
 app.use('/apidoc', swaggerUI.serve, (req, res, next) => {
-    const options = {swaggerOptions: {url: `.${req.query.spec}`}}
+    const options = {swaggerOptions: {url: `.${req.query.spec}`},
+        customJsStr:
+            'window.addEventListener("load", (event) => {document.querySelector("#swagger-ui > section > div.topbar > div > div > a").href = "/";});'
+    }
     return swaggerUI.setup(null, options)(req, res, next);
 });
 

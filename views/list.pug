@@ -1,11 +1,12 @@
 html
-    head/
+    head
     body
         div(style="text-align: center")
             h1 APIs #{title}
             h2 (Listening on port: #{port})
-        div
+        div(style='padding: 10 50')
             ul
                 each schema in apis
-                    li
-                        a(href='/apidoc?spec=' + schema.path) #{schema.name}
+                    h3
+                        li
+                            a(href='/apidoc?spec=' + schema.path) #{schema.name}
