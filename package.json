@@ -12,6 +12,7 @@
       "**/*.json",
       "**/*.yaml",
       "**/*.yml",
+      "./app.js",
       "/Users/rewhite/Code/RedHatInsights/insights-remediations/src/api/openapi.yaml"
     ]
   },
