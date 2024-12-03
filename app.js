@@ -43,14 +43,16 @@ app.set('views', './views');
 
 app.use('/apidoc/schemas/', express.static('./schemas'));
 
+app.use(express.static('./static'));
+
 app.get('/', (req, res) => {
         return res.set('Cache-Control', 'no-store').render('list', {apis: schemaList});
 });
 
 app.use('/apidoc', swaggerUI.serve, (req, res, next) => {
     const options = {swaggerOptions: {url: `.${req.query.spec}`},
-        customJsStr:
-            'window.addEventListener("load", (event) => {document.querySelector("#swagger-ui > section > div.topbar > div > div > a").href = "/";});'
+        customJs: '/custom.js',
+        customCssUrl: '/custom.css'
     }
     return swaggerUI.setup(null, options)(req, res, next);
 });
