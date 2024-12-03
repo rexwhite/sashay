@@ -1,0 +1,898 @@
+openapi: 3.0.1
+info:
+  title: sso.redhat.com API documentation
+  description: This is the API documentation for sso.redhat.com
+  contact:
+    email: it-user-team-list@redhat.com
+  version: 6.1.2-SNAPSHOT
+servers:
+- url: https://sso.redhat.com/auth/realms/redhat-external
+  description: Production server
+- url: https://sso.stage.redhat.com/auth/realms/redhat-external
+  description: Stage server
+- url: http://localhost:8081/auth/realms/redhat-external
+  description: Local development
+security:
+- authFlow: []
+- serviceAccounts: []
+- bearerAuth: []
+tags:
+- name: acs_tenants
+  description: Relevant component to the sso.r.c API for managed ACS
+- name: identity-providers
+  description: Relevant component to the sso.r.c identity provider API
+- name: service_accounts
+  description: Relevant component to the sso.r.c service account API
+paths:
+  /apis/beta/acs/v1:
+    post:
+      tags:
+      - acs_tenants
+      summary: Create ACS managed central client
+      description: Create an ACS managed central client. Created ACS managed central
+        clients are associated with the supplied organization id.
+      operationId: createAcsClient
+      requestBody:
+        description: "The name, redirect URIs and the organization id of the ACS managed\
+          \ central client"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcsClientRequestData'
+        required: true
+      responses:
+        "201":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcsClientResponseData'
+        "400":
+          description: All fields did not pass validation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationExceptionData'
+              examples:
+                Bad Request Example:
+                  description: Bad Request Example
+                  $ref: '#/components/examples/400FieldValidationError'
+        "401":
+          $ref: '#/components/responses/401'
+        "403":
+          description: Exceeded maximum number of ACS managed central clients per
+            tenant.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedHatErrorRepresentation'
+              examples:
+                acs tenant threshold exceeded:
+                  description: acs tenant threshold exceeded
+                  $ref: '#/components/examples/403AcsTenantThresholdExceeded'
+        "405":
+          description: "Not allowed, API Currently Disabled"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedHatErrorRepresentation'
+              examples:
+                acs api disabled:
+                  description: acs api disabled
+                  $ref: '#/components/examples/405AcsApiDisabled'
+      security:
+      - serviceAccounts:
+        - api.iam.clients
+  /apis/beta/acs/v1/{clientId}:
+    delete:
+      tags:
+      - acs_tenants
+      summary: Delete ACS managed central client
+      description: Delete ACS managed central client by clientId. Throws not found
+        exception if the client is not found
+      operationId: deleteAcsClient
+      parameters:
+      - name: clientId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: No Content
+          content:
+            application/json: {}
+        "400":
+          description: Bad Request if clientId is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationExceptionData'
+              examples:
+                Bad Request Example:
+                  description: Bad Request Example
+                  $ref: '#/components/examples/400FieldValidationError'
+        "401":
+          $ref: '#/components/responses/401'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedHatErrorRepresentation'
+              examples:
+                client not found:
+                  description: client not found
+                  $ref: '#/components/examples/404AcsTenantNotFound'
+        "405":
+          description: "Not allowed, API Currently Disabled"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedHatErrorRepresentation'
+              examples:
+                acs api disabled:
+                  description: acs api disabled
+                  $ref: '#/components/examples/405AcsApiDisabled'
+      security:
+      - serviceAccounts:
+        - api.iam.clients
+  /apis/organizations/v1/{id}/authentication-policy:
+    get:
+      summary: Get current authentication policy information
+      operationId: getAuthenticationPolicy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationPolicy'
+        "401":
+          $ref: '#/components/responses/401'
+    post:
+      summary: Update current authentication policy information
+      operationId: setAuthenticationPolicy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthenticationPolicy'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationPolicy'
+        "401":
+          $ref: '#/components/responses/401'
+  /apis/organizations/v1/identity-providers:
+    get:
+      tags:
+      - v1
+      - list
+      - identity-providers
+      summary: List Identity Providers
+      description: Returns a list of Identity Providers for a given Organization Id
+      operationId: getIdentityProviders
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IdentityProviderResponse'
+        "204":
+          description: No Content
+          content:
+            application/json: {}
+        "401":
+          $ref: '#/components/responses/401'
+      security:
+      - admin:
+        - api.iam.organization
+    post:
+      tags:
+      - v1
+      - create
+      - identity-providers
+      summary: Create Identity Provider
+      description: Creates an Identity Provider. Created Identity Provider is associated
+        with the org of the user defined in the bearer token
+      operationId: createIdentityProvider
+      requestBody:
+        description: Identity Provider configuration to be created
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdentityProviderCreateRequestData'
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IdentityProviderResponse'
+        "400":
+          description: All fields did not pass validation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationExceptionData'
+              examples:
+                Bad Request Example:
+                  description: Bad Request Example
+                  $ref: '#/components/examples/400FieldValidationError'
+        "401":
+          $ref: '#/components/responses/401'
+        "403":
+          description: Forbidden - the request is not permitted. This may be due to
+            insufficient user authentication/authorization or due to the organization's
+            settings/configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedHatErrorRepresentation'
+      security:
+      - admin:
+        - api.iam.organization
+  /apis/organizations/v1/identity-providers/{idpAlias}:
+    delete:
+      tags:
+      - v1
+      - delete
+      - identity-providers
+      summary: Delete Identity Provider by idpAlias
+      description: Deletes IdP given an idpAlias
+      operationId: deleteIdentityProvider
+      parameters:
+      - name: idpAlias
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: No Content
+          content:
+            application/json: {}
+        "400":
+          $ref: '#/components/responses/400'
+        "401":
+          $ref: '#/components/responses/401'
+        "404":
+          $ref: '#/components/responses/404'
+        "409":
+          $ref: '#/components/responses/409'
+      security:
+      - admin:
+        - api.iam.organization
+    patch:
+      tags:
+      - v1
+      - partial-update
+      - identity-providers
+      summary: Update Identity Provider
+      description: Updates a Identity Provider by idpAlias
+      operationId: updateIdentityProvider
+      parameters:
+      - name: idpAlias
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Identity Provider configuration to be updated
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdentityProviderUpdateRequestData'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentityProviderResponse'
+        "204":
+          description: No Content
+          content:
+            application/json: {}
+        "400":
+          $ref: '#/components/responses/400'
+        "401":
+          $ref: '#/components/responses/401'
+      security:
+      - admin:
+        - api.iam.organization
+  /apis/organizations/v1/identity-providers/{idpAlias}/status:
+    patch:
+      tags:
+      - v1
+      - toggle-status-enabled
+      - toggle-status-disabled
+      - identity-providers
+      summary: Toggle Identity Provider Status
+      description: "Enables a disabled IdP, disables an enabled IdP"
+      operationId: identityProviderStatus
+      parameters:
+      - name: idpAlias
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IdentityProviderResponse'
+        "400":
+          $ref: '#/components/responses/400'
+        "401":
+          $ref: '#/components/responses/401'
+      security:
+      - admin:
+        - api.iam.organization
+  /apis/service_accounts/v1:
+    get:
+      tags:
+      - service_accounts
+      summary: List all service accounts
+      description: Returns a list of service accounts created by a user. User information
+        is obtained from the bearer token. The list is paginated with starting index
+        as 'first' and page size as 'max'.
+      operationId: getServiceAccounts
+      parameters:
+      - name: first
+        in: query
+        schema:
+          minimum: 0
+          type: integer
+          format: int32
+          default: 0
+      - name: max
+        in: query
+        schema:
+          maximum: 100
+          minimum: 1
+          type: integer
+          format: int32
+          default: 20
+      - name: clientId
+        in: query
+        schema:
+          maxItems: 10
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceAccountData'
+          links:
+            getNextPage:
+              operationId: getServiceAccounts
+              description: link to the next page of service accounts
+        "400":
+          description: Bad Request if page filters are invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationExceptionData'
+              examples:
+                Bad Request Example:
+                  description: Bad Request Example
+                  $ref: '#/components/examples/400FieldValidationError'
+        "401":
+          $ref: '#/components/responses/401'
+      security:
+      - authFlow:
+        - api.iam.service_accounts
+      - serviceAccounts:
+        - api.iam.service_accounts
+    post:
+      tags:
+      - service_accounts
+      summary: Create service account
+      description: Create a service account. Created service account is associated
+        with the user defined in the bearer token.
+      operationId: createServiceAccount
+      requestBody:
+        description: '''name'' and ''description'' of the service account'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceAccountCreateRequestData'
+        required: true
+      responses:
+        "201":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceAccountData'
+        "400":
+          description: All fields did not pass validation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationExceptionData'
+              examples:
+                Bad Request Example:
+                  description: Bad Request Example
+                  $ref: '#/components/examples/400FieldValidationError'
+        "401":
+          $ref: '#/components/responses/401'
+        "403":
+          description: Exceeded account level threshold limits for creating service
+            accounts.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedHatErrorRepresentation'
+              examples:
+                service account threshold exceeded:
+                  description: service account threshold exceeded
+                  $ref: '#/components/examples/403ServiceAccountThresholdExceeded'
+      security:
+      - authFlow:
+        - api.iam.service_accounts
+      - serviceAccounts:
+        - api.iam.service_accounts
+  /apis/service_accounts/v1/{id}:
+    get:
+      tags:
+      - service_accounts
+      summary: Get service account by id
+      description: Returns service account by id. Throws not found exception if the
+        service account is not found or the user does not have access to this service
+        account
+      operationId: getServiceAccount
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceAccountData'
+        "401":
+          $ref: '#/components/responses/401'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedHatErrorRepresentation'
+              examples:
+                service account not found:
+                  description: service account not found
+                  $ref: '#/components/examples/404ServiceAccountNotFound'
+      security:
+      - authFlow:
+        - api.iam.service_accounts
+      - serviceAccounts:
+        - api.iam.service_accounts
+    delete:
+      tags:
+      - service_accounts
+      summary: Delete service account by id
+      description: Delete service account by id. Throws not found exception if the
+        service account is not found or the user does not have access to this service
+        account
+      operationId: deleteServiceAccount
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: No Content
+          content:
+            application/json: {}
+        "401":
+          $ref: '#/components/responses/401'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedHatErrorRepresentation'
+              examples:
+                service account not found:
+                  description: service account not found
+                  $ref: '#/components/examples/404ServiceAccountNotFound'
+      security:
+      - authFlow:
+        - api.iam.service_accounts
+      - serviceAccounts:
+        - api.iam.service_accounts
+    patch:
+      tags:
+      - service_accounts
+      summary: Update service account
+      description: Update a service account by id.
+      operationId: updateServiceAccount
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: '''name'' and ''description'' of the service account'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceAccountRequestData'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceAccountData'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationExceptionData'
+              examples:
+                Bad Request Example:
+                  description: Bad Request Example
+                  $ref: '#/components/examples/400FieldValidationError'
+        "401":
+          $ref: '#/components/responses/401'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedHatErrorRepresentation'
+              examples:
+                service account not found:
+                  description: service account not found
+                  $ref: '#/components/examples/404ServiceAccountNotFound'
+      security:
+      - authFlow:
+        - api.iam.service_accounts
+      - serviceAccounts:
+        - api.iam.service_accounts
+  /apis/service_accounts/v1/{id}/resetSecret:
+    post:
+      tags:
+      - service_accounts
+      summary: Reset service account secret by id
+      description: Reset service account secret by id . Throws not found exception
+        if the service account is not found or the user does not have access to this
+        service account
+      operationId: resetServiceAccountSecret
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceAccountData'
+        "401":
+          $ref: '#/components/responses/401'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedHatErrorRepresentation'
+              examples:
+                service account not found:
+                  description: service account not found
+                  $ref: '#/components/examples/404ServiceAccountNotFound'
+      security:
+      - authFlow:
+        - api.iam.service_accounts
+      - serviceAccounts:
+        - api.iam.service_accounts
+components:
+  schemas:
+    Error:
+      required:
+      - error
+      type: object
+      properties:
+        error:
+          type: string
+          description: The cause of the Error.
+    AcsClientResponseData:
+      type: object
+      properties:
+        clientId:
+          type: string
+        secret:
+          type: string
+        name:
+          type: string
+        createdAt:
+          type: integer
+          format: int64
+    ValidationExceptionData:
+      type: object
+      properties:
+        fields:
+          type: object
+          additionalProperties:
+            type: string
+        error:
+          type: string
+          example: invalid_field
+        error_description:
+          type: string
+    RedHatErrorRepresentation:
+      type: object
+      properties:
+        error:
+          type: string
+          enum:
+          - service_account_limit_exceeded
+          - service_account_not_found
+          - service_account_user_not_found
+          - service_account_access_invalid
+          - acs_tenant_limit_exceeded
+          - acs_tenant_not_found
+          - acs_access_invalid
+          - acs_invalid_redirect_uri
+          - acs_invalid_client
+          - acs_disabled
+          - smoketest_access_invalid
+          - smoketest_not_found
+          - general_failure
+          - organization_api_server_exception
+          - organization_api_access_invalid
+          - organization_api_account_type_invalid
+          - organization_api_disabled
+          - organization_api_identity_provider_missing
+          - organization_api_identity_provider_invalid_for_removal
+        error_description:
+          type: string
+    AcsClientRequestData:
+      required:
+      - orgId
+      - redirectUris
+      type: object
+      properties:
+        name:
+          maxLength: 50
+          minLength: 1
+          type: string
+        redirectUris:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        orgId:
+          pattern: "\\d{1,10}"
+          type: string
+    AuthenticationFactors:
+      type: object
+      properties:
+        otp:
+          $ref: '#/components/schemas/Otp'
+    AuthenticationPolicy:
+      type: object
+      properties:
+        authenticationFactors:
+          $ref: '#/components/schemas/AuthenticationFactors'
+    Otp:
+      type: object
+      properties:
+        required:
+          type: boolean
+    IdentityProviderResponse:
+      type: object
+    IdentityProviderCreateRequestData:
+      required:
+      - providerId
+      type: object
+      properties:
+        providerId:
+          type: string
+      discriminator:
+        propertyName: providerId
+    IdentityProviderSamlCreateRequest:
+      required:
+      - authenticationRequestsUrl
+      - identityProviderEntityId
+      - providerId
+      - serviceProviderEntityId
+      - x509Certificate
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/IdentityProviderCreateRequestData'
+      - type: object
+        properties:
+          providerId:
+            pattern: ^(oidc-improved|saml-improved)$
+            type: string
+          serviceProviderEntityId:
+            maxLength: 255
+            minLength: 1
+            pattern: "[a-zA-Z0-9._:/?#@!&()*+,;=-]+"
+            type: string
+          identityProviderEntityId:
+            maxLength: 255
+            minLength: 1
+            pattern: "[a-zA-Z0-9._:/?#@!&()*+,;=-]+"
+            type: string
+          authenticationRequestsUrl:
+            maxLength: 255
+            minLength: 1
+            pattern: "^https:\\/\\/(localhost|[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)+)(:\\\
+              d{1,5})?(\\/\\S*)?$"
+            type: string
+          x509Certificate:
+            maxLength: 8192
+            minLength: 1
+            pattern: "^([A-Za-z0-9+\\/=]+)(,[A-Za-z0-9+\\/=]+)*$"
+            type: string
+    IdentityProviderRequest:
+      type: object
+    IdentityProviderUpdateRequestData:
+      type: object
+      properties:
+        identityProviderRequest:
+          $ref: '#/components/schemas/IdentityProviderRequest'
+    ServiceAccountData:
+      type: object
+      properties:
+        id:
+          type: string
+        clientId:
+          type: string
+        secret:
+          type: string
+          description: Provided during creation and resetting of service account credentials.
+        name:
+          type: string
+        description:
+          type: string
+        createdBy:
+          type: string
+        createdAt:
+          type: integer
+          format: int64
+    ServiceAccountCreateRequestData:
+      required:
+      - name
+      type: object
+      properties:
+        name:
+          maxLength: 50
+          minLength: 1
+          type: string
+        description:
+          maxLength: 255
+          minLength: 0
+          type: string
+    ServiceAccountRequestData:
+      type: object
+      properties:
+        name:
+          maxLength: 50
+          minLength: 1
+          type: string
+        description:
+          maxLength: 255
+          minLength: 0
+          type: string
+  responses:
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    "403":
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    "500":
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  examples:
+    "400FieldValidationError":
+      value:
+        error: invalid_field
+        error_description: Request failed field validation
+        fields:
+          name: description of constraint which failed
+    "404ServiceAccountNotFound":
+      value:
+        error: service_account_not_found
+        error_description: Service account 1234 not found.
+    "403ServiceAccountThresholdExceeded":
+      value:
+        error: service_account_limit_exceeded
+        error_description: Cannot create more than 50 service accounts per account.
+    "403AcsTenantThresholdExceeded":
+      value:
+        error: acs_tenant_limit_exceeded
+        error_description: Cannot create more than 25 tenants per account.
+    "404AcsTenantNotFound":
+      value:
+        error: acs_tenant_not_found
+        error_description: ACS Client 1234 not found.
+    "405AcsApiDisabled":
+      value:
+        error: acs_disabled
+        error_description: ACS API is currently disabled.
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    authFlow:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: /auth/realms/redhat-external/protocol/openid-connect/auth
+          tokenUrl: /auth/realms/redhat-external/protocol/openid-connect/token
+          scopes:
+            openid: Treat as an OIDC request
+            api.iam.service_accounts: Grants access to the service accounts api
+    serviceAccounts:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: /auth/realms/redhat-external/protocol/openid-connect/token
+          scopes:
+            openid: Treat as an OIDC request
+            api.iam.service_accounts: Grants access to the service accounts api
+            api.iam.clients: Grants access to the advanced cluster security api
