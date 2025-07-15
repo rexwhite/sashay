@@ -30,6 +30,7 @@ function loadSchemaList(directory=`${SCHEMA_DIR}`) {
         .value();
     })
     .flatten()
+    .sortBy('name')
     .value();
 
     return list;
