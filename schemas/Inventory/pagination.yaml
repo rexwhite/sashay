@@ -1,0 +1,113 @@
+---
+openapi: 3.0.0
+info:
+  description: includes for pagination
+  version: 1.0.0
+  title: example pagination
+paths: {}
+components:
+  parameters:
+    pageParam:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        # page * (per_page -1) must be less than 2,147,483,647 (signed int32 max)
+        # per_page max is 100, so page max is 21474837.
+        maximum: 21474837
+        default: 1
+      description: A page number of the items to return.
+    perPageParam:
+      name: per_page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 50
+      description: A number of items to return per page.
+    resourceTypesPerPageParam:
+      name: per_page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+      description: A number of items to return per page.
+  schemas:
+    PaginationOut:
+      type: object
+      required:
+        - count
+        - page
+        - per_page
+        - total
+      properties:
+        count:
+          $ref: '#/components/schemas/Count'
+        page:
+          $ref: '#/components/schemas/Page'
+        per_page:
+          $ref: '#/components/schemas/PerPage'
+        total:
+          $ref: '#/components/schemas/Total'
+    ResourceTypesPaginationOut:
+      type: object
+      required:
+        - meta
+        - links
+      properties:
+        meta:
+          $ref: '#/components/schemas/Meta'
+        links:
+          $ref: '#/components/schemas/Links'
+    Total:
+      type: integer
+      description: Total number of items
+    Count:
+      type: integer
+      description: The number of items on the current page
+    Page:
+      type: integer
+      description: The page number
+    PerPage:
+      type: integer
+      description: The number of items to return per page
+    Meta:
+      description: The metadata for resource-types responses
+      type: object
+      required:
+        - count
+      properties:
+        count:
+          description: The total number of objects returned by the query.
+          type: integer
+    Links:
+      description: A collection of pagination links for resource-types endpoints
+      type: object
+      required:
+        - first
+        - previous
+        - next
+        - last
+      properties:
+        first:
+          description: The URI path for the first page in the pagination
+          type: string
+        previous:
+          description: The URI path for the previous page in the pagination
+          type: string
+          nullable: true
+        next:
+          description: The URI path for the next page in the pagination
+          type: string
+          nullable: true
+        last:
+          description: The URI path for the last page in the pagination
+          type: string
+
